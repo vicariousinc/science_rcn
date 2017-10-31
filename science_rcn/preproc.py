@@ -8,6 +8,11 @@ from scipy.signal import fftconvolve
 
 LOG = logging.getLogger(__name__)
 
+try:
+    xrange          # Python 2
+except NameError:
+    xrange = range  # Python 3
+
 
 class Preproc(object):
     """

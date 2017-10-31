@@ -14,6 +14,7 @@ python science_rcn/run.py --train_size 100 --test_size 20 --parallel
 (could take hours depending on the number of available CPUs, average accuracy is ~97.7+%):
 python science_rcn/run.py --full_test_set --train_size 1000 --parallel --pool_shape 25 --perturb_factor 2.0
 """
+from __future__ import print_function
 
 import argparse
 import logging
@@ -92,7 +93,7 @@ def run_experiment(data_dir='data/MNIST',
     correct = 0
     for test_idx, (winner_idx, _) in enumerate(test_results):
         correct += int(test_data[test_idx][1]) == winner_idx // (train_size // 10)
-    print "Total test accuracy = {}".format(float(correct) / len(test_results))
+    print("Total test accuracy = {}".format(float(correct) / len(test_results)))
 
     return all_model_factors, test_results
 

@@ -17,6 +17,11 @@ from science_rcn.preproc import Preproc
 
 LOG = logging.getLogger(__name__)
 
+try:
+    xrange          # Python 2
+except NameError:
+    xrange = range  # Python 3
+
 
 class RCNInferenceError(Exception):
     """Raise for general errors in RCN inference."""

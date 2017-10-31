@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext as _build_ext
@@ -24,7 +25,7 @@ requirements = _findRequirements()
 # Check for MNIST data dir
 if not os.path.isdir('./data/MNIST'):
     if os.path.exists('./data/MNIST.zip'):
-        print "Extracting MNIST data..."
+        print("Extracting MNIST data...")
         with zipfile.ZipFile('./data/MNIST.zip', 'r') as z:
             z.extractall('./data/')
     else:
