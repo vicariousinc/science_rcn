@@ -131,7 +131,7 @@ def generate_suppression_masks(filter_scale=4., num_orients=16):
     # Compute for orientations [0, pi), then flip for [pi, 2*pi)
     for i, angle in enumerate(np.linspace(0., np.pi, num_orients // 2, endpoint=False)):
         x, y = np.cos(angle), np.sin(angle)
-        for r in xrange(1, int(np.sqrt(2) * size / 2)):
+        for r in range(1, int(np.sqrt(2) * size / 2)):
             dx, dy = round(r * x), round(r * y)
             if abs(dx) > cx or abs(dy) > cy:
                 continue
@@ -160,7 +160,7 @@ def local_nonmax_suppression(filtered, suppression_masks, num_orients=16):
     localized = np.zeros_like(filtered)
     cross_orient_max = filtered.max(0)
     filtered[filtered < 0] = 0
-    for i, (layer, suppress_mask) in enumerate(zip(filtered, suppression_masks)):
+    for i, (layer, suppress_mask) in enumerate(list(zip(filtered, suppression_masks))):
         competitor_maxs = maximum_filter(layer, footprint=suppress_mask, mode='nearest')
         localized[i] = competitor_maxs <= layer
     localized[cross_orient_max > filtered] = 0

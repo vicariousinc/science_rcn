@@ -81,7 +81,7 @@ def run_experiment(data_dir='data/MNIST',
     train_partial = partial(train_image,
                             perturb_factor=perturb_factor)
     train_results = pool.map_async(train_partial, [d[0] for d in train_data]).get(9999999)
-    all_model_factors = zip(*train_results)
+    all_model_factors = list(zip(*train_results))
 
     LOG.info("Testing on {} images...".format(len(test_data)))
     test_partial = partial(test_image, model_factors=all_model_factors,
@@ -92,7 +92,7 @@ def run_experiment(data_dir='data/MNIST',
     correct = 0
     for test_idx, (winner_idx, _) in enumerate(test_results):
         correct += int(test_data[test_idx][1]) == winner_idx // (train_size // 10)
-    print "Total test accuracy = {}".format(float(correct) / len(test_results))
+    print("Total test accuracy = {}".format(float(correct) / len(test_results)))
 
     return all_model_factors, test_results
 

@@ -8,7 +8,7 @@ Reference implementation of a two-level RCN model on MNIST classification. See t
 
 ## Setup
 
-Note: Python 2.7 is supported. The code was tested on OSX 10.11. It may work on other system platforms but not guaranteed.
+Note: Python 2.7 and python 3.6 is supported. The code was tested on OSX 10.11. It may work on other system platforms but not guaranteed.
 
 Before starting please make sure gcc is installed (`brew install gcc`) and up to date in order to compile the various dependencies (particularly numpy).
 

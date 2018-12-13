@@ -24,13 +24,40 @@ static PyMethodDef dilationmethods[] = {
 
 
 /* ==== Initialize the C_test functions ====================== */
-extern "C" {
-void init_dilation()
+/* This initiates the module using the above definitions. */
+#if PY_VERSION_HEX >= 0x03000000
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "_dilation",
+    NULL,
+    -1,
+    dilationmethods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
+PyMODINIT_FUNC PyInit__dilation(void)
 {
-    (void) Py_InitModule("_dilation", dilationmethods);
-    import_array(); // Must be present for NumPy.  Called first after above line.
+    PyObject *m;
+    m = PyModule_Create(&moduledef);
+    if (!m) {
+        return NULL;
+    }
+    return m;
 }
+#else
+PyMODINIT_FUNC init_dilation(void)
+{
+    PyObject *m;
+
+    m = Py_InitModule("_dilation", dilationmethods);
+    if (m == NULL) {
+        return;
+    }
 }
+#endif
 
 /// Check condition and return NULL (which will cause a python exception) if
 /// it's false, and include an arbitrary format string as the error message
