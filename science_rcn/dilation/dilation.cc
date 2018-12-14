@@ -17,9 +17,9 @@ using namespace std;
 
 /* ==== Set up the methods table ====================== */
 static PyMethodDef dilationmethods[] = {
-    {"max_filter1d", py_max_filter1d, METH_VARARGS},
-    {"brute_max_filter1d", py_brute_max_filter1d, METH_VARARGS},
-    {NULL, NULL}   /* Sentinel - marks the end of this structure */
+    {"max_filter1d", py_max_filter1d, METH_VARARGS, "max filter1d"},
+    {"brute_max_filter1d", py_brute_max_filter1d, METH_VARARGS, "brute max filter1d"},
+    {NULL, NULL, 0, NULL}
 };
 
 
@@ -40,22 +40,14 @@ static struct PyModuleDef moduledef = {
 
 PyMODINIT_FUNC PyInit__dilation(void)
 {
-    PyObject *m;
-    m = PyModule_Create(&moduledef);
-    if (!m) {
-        return NULL;
-    }
-    return m;
+    import_array();
+    return PyModule_Create(&moduledef);
 }
 #else
 PyMODINIT_FUNC init_dilation(void)
 {
-    PyObject *m;
-
-    m = Py_InitModule("_dilation", dilationmethods);
-    if (m == NULL) {
-        return;
-    }
+    (void) Py_InitModule("_dilation", dilationmethods);
+    import_array();
 }
 #endif
 
