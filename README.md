@@ -2,7 +2,7 @@
 
 # Reference implementation of Recursive Cortical Network (RCN)
 
-Reference implementation of a two-level RCN model on MNIST classification. See the *Science* article "A generative vision model that trains with high data efficiency and breaks text-based CAPTCHAs" and [Vicarious Blog](https://www.vicarious.com/Common_Sense_Cortex_and_CAPTCHA.html) for details.
+Reference implementation of a two-level RCN model on MNIST classification. See the *Science* article "A generative vision model that trains with high data efficiency and breaks text-based CAPTCHAs" and [Vicarious Blog](https://www.vicarious.com/posts/common-sense-cortex-and-captcha) for details.
 
 > Note: this is an unoptimized reference implementation and is not intended for production.
 
