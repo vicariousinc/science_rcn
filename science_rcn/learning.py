@@ -158,7 +158,7 @@ def add_underconstraint_edges(frcs,
 
         target_perturb_dist = dist / float(perturb_factor)
         actual_perturb_dist = max(0, np.ceil(target_perturb_dist))
-        if perturb_dist >= target_perturb_dist * tolerance:
+        if perturb_dist >= target_perturb_dist * tolerance: 
             graph.add_edge(source,
                            target,
                            perturb_radius=int(actual_perturb_dist))
@@ -183,8 +183,8 @@ def adjust_edge_perturb_radii(frcs,
         round_down_error = total_rounding_error + lower - desired_radius
         if abs(round_up_error) < abs(round_down_error):
             graph.edge[n1][n2]['perturb_radius'] = upper
-            total_rounding_error = round_up_error
+            total_rounding_error += round_up_error
         else:
             graph.edge[n1][n2]['perturb_radius'] = lower
-            total_rounding_error = round_down_error
+            total_rounding_error += round_down_error
     return graph
