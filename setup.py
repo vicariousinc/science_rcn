@@ -24,7 +24,7 @@ requirements = _findRequirements()
 # Check for MNIST data dir
 if not os.path.isdir('./data/MNIST'):
     if os.path.exists('./data/MNIST.zip'):
-        print "Extracting MNIST data..."
+        print("Extracting MNIST data...")
         with zipfile.ZipFile('./data/MNIST.zip', 'r') as z:
             z.extractall('./data/')
     else:
@@ -62,9 +62,9 @@ setup(
     setup_requires=['numpy>=1.13.3'],
     install_requires=[
         'networkx>=1.11,<1.12',
-        'numpy==1.13.3',
-        'pillow>=4.1.0,<4.2',
-        'scipy>=0.19.0,<0.20',
+        'numpy>=1.13.3',
+        'pillow>=4.1.0',
+        'scipy>=0.19.0',
         'setuptools>=36.5.0'
     ],
     ext_modules=[dilation_module],
@@ -73,6 +73,7 @@ setup(
         'Natural Language :: English',
         'Operating System :: MacOS :: MacOS X',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: C'],
     keywords='rcn',
