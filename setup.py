@@ -63,7 +63,7 @@ setup(
     install_requires=[
         'networkx>=1.11,<1.12',
         'numpy==1.13.3',
-        'pillow>=4.1.0,<4.2',
+        'pillow>=4.1.0,<8.4',
         'scipy>=0.19.0,<0.20',
         'setuptools>=36.5.0'
     ],
