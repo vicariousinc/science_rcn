@@ -56,7 +56,7 @@ python science_rcn/run.py --full_test_set --train_size 1000 --parallel --pool_sh
 
 ## Blog post
 
-Check out our related [blog post](https://www.vicarious.com/Common_Sense_Cortex_and_CAPTCHA.html).
+Check out our related [blog post](https://www.vicarious.com/posts/common-sense-cortex-and-captcha).
 
 ## Datasets
 
