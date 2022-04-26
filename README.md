@@ -18,7 +18,7 @@ git clone https://github.com/vicariousinc/science_rcn.git
 
 The code is pure Python, so you can run it right away, although you will have to uncompress the ZIP in the data folder manually. 
 
-Alternative, install with (setting up a virtual environment beforehand is recommended):
+Alternatively, install with (setting up a virtual environment beforehand is recommended):
 
 ```
 python setup.py install
