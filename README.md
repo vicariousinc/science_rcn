@@ -8,9 +8,7 @@ Reference implementation of a two-level RCN model on MNIST classification. See t
 
 ## Setup
 
-Note: Python 2.7 is supported. The code was tested on OSX 10.11. It may work on other system platforms but not guaranteed.
-
-Before starting please make sure gcc is installed (`brew install gcc`) and up to date in order to compile the various dependencies (particularly numpy).
+Note: Python 3.9 is supported. The code was tested on OSX 12.3.1. It may work on other system platforms but not guaranteed. You will need the packages listed in `requirements.txt` to be installed.
 
 Clone the repository:
 
@@ -18,17 +16,11 @@ Clone the repository:
 git clone https://github.com/vicariousinc/science_rcn.git
 ```
 
-Simple Install:
+The code is pure Python, so you can run it right away, although you will have to uncompress the ZIP in the data folder manually. 
+
+Alternative, install with (setting up a virtual environment beforehand is recommended):
 
 ```
-cd science_rcn
-make
-```
-
-Manual Install (setting up a virtual environment beforehand is recommended):
-
-```
-cd science_rcn
 python setup.py install
 ```
 

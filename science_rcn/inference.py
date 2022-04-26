@@ -6,13 +6,12 @@ This code is an unoptimized version of what was used to produce the results in t
 Note that we use a faster implementation of 2D dilation, instead of the slower
 scipy.ndimage.morphology.grey_dilation.
 """
-from itertools import izip
+
 import logging
 import numpy as np
 import networkx as nx
 from numpy.random import rand, randint
-
-from science_rcn.dilation.dilation import dilate_2d
+from scipy.ndimage.morphology import grey_dilation as dilate_2d
 from science_rcn.preproc import Preproc
 
 LOG = logging.getLogger(__name__)
@@ -20,11 +19,13 @@ LOG = logging.getLogger(__name__)
 
 class RCNInferenceError(Exception):
     """Raise for general errors in RCN inference."""
+
     pass
 
 
-def test_image(img, model_factors,
-               pool_shape=(25, 25), num_candidates=20, n_iters=300, damping=1.0):
+def test_image(
+    img, model_factors, pool_shape=(25, 25), num_candidates=20, n_iters=300, damping=1.0
+):
     """
     Main function for testing on one image.
 
@@ -56,19 +57,23 @@ def test_image(img, model_factors,
 
     # Forward pass inference
     fp_scores = np.zeros(len(model_factors[0]))
-    for i, (frcs, _, graph) in enumerate(izip(*model_factors)):
-        fp_scores[i] = forward_pass(frcs,
-                                    bu_msg,
-                                    graph,
-                                    pool_shape)
+    for i, (frcs, _, graph) in enumerate(zip(*model_factors)):
+        fp_scores[i] = forward_pass(frcs, bu_msg, graph, pool_shape)
     top_candidates = np.argsort(fp_scores)[-num_candidates:]
 
     # Backward pass inference
     winner_idx, winner_score = (-1, -np.inf)  # (training feature idx, score)
     for idx in top_candidates:
         frcs, edge_factors = model_factors[0][idx], model_factors[1][idx]
-        rcn_inf = LoopyBPInference(bu_msg, frcs, edge_factors, pool_shape, preproc_layer,
-                                   n_iters=n_iters, damping=damping)
+        rcn_inf = LoopyBPInference(
+            bu_msg,
+            frcs,
+            edge_factors,
+            pool_shape,
+            preproc_layer,
+            n_iters=n_iters,
+            damping=damping,
+        )
         score = rcn_inf.bwd_pass()
         if score >= winner_score:
             winner_idx, winner_score = (idx, score)
@@ -104,13 +109,18 @@ def forward_pass(frcs, bu_msg, graph, pool_shape):
     vps, hps = pool_shape
 
     def _pool_slice(f, r, c):
-        assert (r - vps // 2 >= 0 and r + vps - vps // 2 < height and
-                c - hps // 2 >= 0 and c + hps - hps // 2 < width), \
-            "Some pools are out of the image boundaries. "\
+        assert (
+            r - vps // 2 >= 0
+            and r + vps - vps // 2 < height
+            and c - hps // 2 >= 0
+            and c + hps - hps // 2 < width
+        ), (
+            "Some pools are out of the image boundaries. "
             "Consider increase image padding or reduce pool shapes."
-        return np.s_[f,
-                     r - vps // 2: r + vps - vps // 2,
-                     c - hps // 2: c + hps - hps // 2]
+        )
+        return np.s_[
+            f, r - vps // 2 : r + vps - vps // 2, c - hps // 2 : c + hps - hps // 2
+        ]
 
     # Find a schedule to compute the max marginal for the most constrained tree
     tree_schedule = get_tree_schedule(frcs, graph)
@@ -128,8 +138,10 @@ def forward_pass(frcs, bu_msg, graph, pool_shape):
             incoming_msgs[target] += msg_in
         else:
             incoming_msgs[target] = msg_in
-    fp_score = np.max(incoming_msgs[tree_schedule[-1, 1]] +
-                      bu_msg[_pool_slice(*frcs[tree_schedule[-1, 1]])])
+    fp_score = np.max(
+        incoming_msgs[tree_schedule[-1, 1]]
+        + bu_msg[_pool_slice(*frcs[tree_schedule[-1, 1]])]
+    )
     return fp_score
 
 
@@ -147,9 +159,13 @@ def get_tree_schedule(frcs, graph):
         Nx3 2D array of (source pool_idx, target pool_idx, perturb radius), where
         each row represents a single outgoing factor message computation.
     """
-    min_tree = nx.minimum_spanning_tree(graph, 'perturb_radius')
-    return np.array([(target, source, graph.edge[source][target]['perturb_radius'])
-                     for source, target in nx.dfs_edges(min_tree)])[::-1]
+    min_tree = nx.minimum_spanning_tree(graph, "perturb_radius")
+    return np.array(
+        [
+            (target, source, graph.edges[source, target]["perturb_radius"])
+            for source, target in nx.dfs_edges(min_tree)
+        ]
+    )[::-1]
 
 
 class LoopyBPInference(object):
@@ -174,8 +190,17 @@ class LoopyBPInference(object):
         (unnormalized) log-message of pool v2 being in state r, c.
     """
 
-    def __init__(self, bu_msg, frcs, edge_factors, pool_shape, preproc_layer,
-                 n_iters=300, damping=1.0, tol=1e-5):
+    def __init__(
+        self,
+        bu_msg,
+        frcs,
+        edge_factors,
+        pool_shape,
+        preproc_layer,
+        n_iters=300,
+        damping=1.0,
+        tol=1e-5,
+    ):
         """
         Parameters
         ----------
@@ -216,16 +241,28 @@ class LoopyBPInference(object):
 
         # Check inputs
         if (np.array([0, self.vps // 2, self.hps // 2]) > frcs.min(0)).any():
-            raise RCNInferenceError("Some frcs are too small for the provided pool shape")
-        if (frcs.max(0) >= np.array([self.n_feats,
-                                    self.n_rows - ((self.vps - 1) // 2),
-                                    self.n_cols - ((self.hps - 1) // 2)])).any():
-            raise RCNInferenceError("Some frcs are too big for the provided pool "
-                                    "shape and/or `bu_msg`")
+            raise RCNInferenceError(
+                "Some frcs are too small for the provided pool shape"
+            )
+        if (
+            frcs.max(0)
+            >= np.array(
+                [
+                    self.n_feats,
+                    self.n_rows - ((self.vps - 1) // 2),
+                    self.n_cols - ((self.hps - 1) // 2),
+                ]
+            )
+        ).any():
+            raise RCNInferenceError(
+                "Some frcs are too big for the provided pool " "shape and/or `bu_msg`"
+            )
         if (edge_factors[:, :2].min(0) < np.array([0, 0])).any():
             raise RCNInferenceError("Some variable index in `edge_factors` is negative")
         if (edge_factors[:, :2].max(0) >= np.array([self.n_pools, self.n_pools])).any():
-            raise RCNInferenceError("Some index in `edge_factors` exceeds the number of vars")
+            raise RCNInferenceError(
+                "Some index in `edge_factors` exceeds the number of vars"
+            )
         if (edge_factors[:, 0] == edge_factors[:, 1]).any():
             raise RCNInferenceError("Some factor connects a variable to itself")
         if not issubclass(edge_factors.dtype.type, np.integer):
@@ -238,9 +275,9 @@ class LoopyBPInference(object):
         for i, (f, r, c) in enumerate(self.frcs):
             rstart = r - self.vps // 2
             cstart = c - self.hps // 2
-            self.unary_messages[i] = bu_msg_pert[f,
-                                                 rstart:rstart + self.vps,
-                                                 cstart:cstart + self.hps]
+            self.unary_messages[i] = bu_msg_pert[
+                f, rstart : rstart + self.vps, cstart : cstart + self.hps
+            ]
 
     def _reset_messages(self):
         """Set all lateral messages to zero."""
@@ -286,9 +323,11 @@ class LoopyBPInference(object):
         new_lat_messages = np.zeros_like(self.lat_messages)
         for f, (var_i, var_j, pert_radius) in enumerate(self.edge_factors):
             new_lat_messages[0, f] = self.compute_1pl_message(
-                beliefs[var_i] - self.lat_messages[1, f], pert_radius)
+                beliefs[var_i] - self.lat_messages[1, f], pert_radius
+            )
             new_lat_messages[1, f] = self.compute_1pl_message(
-                beliefs[var_j] - self.lat_messages[0, f], pert_radius)
+                beliefs[var_j] - self.lat_messages[0, f], pert_radius
+            )
         return new_lat_messages
 
     def bwd_pass(self):
@@ -306,8 +345,10 @@ class LoopyBPInference(object):
         assignments, backtrace_positions, score = self.decode()
         # Check constraints are satisfied
         if not self.laterals_are_satisfied(assignments):
-            LOG.debug("Lateral constraints not satisfied. Try increasing the "
-                      "number of iterations.")
+            LOG.debug(
+                "Lateral constraints not satisfied. Try increasing the "
+                "number of iterations."
+            )
             score = -np.inf
         return score
 
@@ -315,14 +356,16 @@ class LoopyBPInference(object):
         """Parallel loopy BP message passing, modifying state of `lat_messages`.
         See bwd_pass() for parameters.
         """
-        for it in xrange(self.n_iters):
+        for it in range(self.n_iters):
             new_lat_messages = self.new_messages()
             delta = new_lat_messages - self.lat_messages
             self.lat_messages += self.damping * delta
             if np.abs(delta).max() < self.tol:
                 LOG.debug("Parallel loopy BP converged in {} iterations".format(it))
                 return
-        LOG.debug("Parallel loopy BP didn't converge in {} iterations".format(self.n_iters))
+        LOG.debug(
+            "Parallel loopy BP didn't converge in {} iterations".format(self.n_iters)
+        )
 
     def decode(self):
         """Find pool assignments by decoding the max-marginal messages.
@@ -350,11 +393,11 @@ class LoopyBPInference(object):
             assignments[i] = np.array([r_max[choice], c_max[choice]])
             rstart = r - self.vps // 2
             cstart = c - self.hps // 2
-            backtrace[f,
-                      rstart + assignments[i, 0],
-                      cstart + assignments[i, 1]] = 1
+            backtrace[f, rstart + assignments[i, 0], cstart + assignments[i, 1]] = 1
         backtrace_positions = np.transpose(np.nonzero(backtrace))
-        score = recount(backtrace_positions, self.bu_msg, self.preproc_layer.pos_filters)
+        score = recount(
+            backtrace_positions, self.bu_msg, self.preproc_layer.pos_filters
+        )
         return assignments, backtrace_positions, score
 
     def laterals_are_satisfied(self, assignments):
@@ -405,32 +448,43 @@ def recount(backtrace_positions, bu_msg, filters):
     f_h, f_w = filters[0].shape
     layers = np.zeros((len(backtrace_positions), height, width))
     fo_h, fo_w = f_h // 2, f_w // 2
-    from_r, to_r = (np.maximum(0, backtrace_positions[:, 1] - fo_h),
-                    np.minimum(height, backtrace_positions[:, 1] - fo_h + f_h))
-    from_c, to_c = (np.maximum(0, backtrace_positions[:, 2] - fo_w),
-                    np.minimum(width, backtrace_positions[:, 2] - fo_w + f_w))
-    from_fr, to_fr = (np.maximum(0, fo_h - backtrace_positions[:, 1]),
-                      np.minimum(f_h, height - backtrace_positions[:, 1] + fo_h))
-    from_fc, to_fc = (np.maximum(0, fo_w - backtrace_positions[:, 2]),
-                      np.minimum(f_w, width - backtrace_positions[:, 2] + fo_w))
+    from_r, to_r = (
+        np.maximum(0, backtrace_positions[:, 1] - fo_h),
+        np.minimum(height, backtrace_positions[:, 1] - fo_h + f_h),
+    )
+    from_c, to_c = (
+        np.maximum(0, backtrace_positions[:, 2] - fo_w),
+        np.minimum(width, backtrace_positions[:, 2] - fo_w + f_w),
+    )
+    from_fr, to_fr = (
+        np.maximum(0, fo_h - backtrace_positions[:, 1]),
+        np.minimum(f_h, height - backtrace_positions[:, 1] + fo_h),
+    )
+    from_fc, to_fc = (
+        np.maximum(0, fo_w - backtrace_positions[:, 2]),
+        np.minimum(f_w, width - backtrace_positions[:, 2] + fo_w),
+    )
 
     if not np.all(to_r - from_r == to_fr - from_fr):
-        raise RCNInferenceError("Numbers of rows of filter and image patches "
-                                "({}, {}) do not agree".format(
-                                    to_r - from_r, to_fr - from_fr))
+        raise RCNInferenceError(
+            "Numbers of rows of filter and image patches "
+            "({}, {}) do not agree".format(to_r - from_r, to_fr - from_fr)
+        )
     if not np.all(to_c - from_c == to_fc - from_fc):
-        raise RCNInferenceError("Numbers of columns of filter and image patches "
-                                "({}, {}) do not agree".format(
-                                    to_c - from_c, to_fc - from_fc))
+        raise RCNInferenceError(
+            "Numbers of columns of filter and image patches "
+            "({}, {}) do not agree".format(to_c - from_c, to_fc - from_fc)
+        )
 
     # Normalize activations by taking into account filter overlaps
     weight_sum = np.zeros((height, width))
     for i, (f, r, c) in enumerate(backtrace_positions):
         # Convolve sparse top-down activations with filters
-        filt = filters[f][from_fr[i]:to_fr[i], from_fc[i]:to_fc[i]]
+        filt = filters[f][from_fr[i] : to_fr[i], from_fc[i] : to_fc[i]]
 
-        weight_sum[from_r[i]:to_r[i], from_c[i]:to_c[i]] += filt
-        layers[i, from_r[i]:to_r[i], from_c[i]:to_c[i]] = \
-            filt**2 * bu_msg[f, r, c] / (1e-9 + filt.sum())
+        weight_sum[from_r[i] : to_r[i], from_c[i] : to_c[i]] += filt
+        layers[i, from_r[i] : to_r[i], from_c[i] : to_c[i]] = (
+            filt ** 2 * bu_msg[f, r, c] / (1e-9 + filt.sum())
+        )
     normalized_score = (layers.sum(0) / (1e-9 + weight_sum)).sum()
     return normalized_score

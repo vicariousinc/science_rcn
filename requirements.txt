@@ -1,7 +1,5 @@
-decorator==4.1.2
-networkx==1.11
-numpy==1.13.3
-olefile==0.44
-Pillow==4.1.1
-rcn-ref==1.0.0
-scipy==0.19.1
+matplotlib==3.4.3
+networkx==2.7.1
+numpy==1.19.5
+Pillow==9.1.0
+scipy==1.7.0
