@@ -2,4 +2,4 @@ matplotlib==3.4.3
 networkx==2.7.1
 numpy==1.19.5
 Pillow==9.1.0
-scipy==1.7.0
+scipy==1.10.0
