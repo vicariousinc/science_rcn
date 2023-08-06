@@ -14,11 +14,12 @@ LOG = logging.getLogger(__name__)
 ModelFactors = namedtuple("ModelFactors", "frcs edge_factors graph")
 
 
-def train_image(img, perturb_factor=2.0):
+def train_image(img, perturb_factor=2.0, num_iterations=100):
     """Main function for training on one image.
 
     Parameters
     ----------
+    num_iterations
     img : 2D numpy.ndarray
         The training image.
     perturb_factor : float
@@ -43,8 +44,12 @@ def train_image(img, perturb_factor=2.0):
     bu_msg = preproc_layer.fwd_infer(img)
     # Sparsification (cf. Sec 5.1.1)
     frcs = sparsify(bu_msg)
-    # Lateral learning (cf. 5.2)
-    graph, edge_factors = learn_laterals(frcs, bu_msg, perturb_factor=perturb_factor)
+
+    # Training loop for specified number of iterations
+    for iteration in range(num_iterations):
+        # Lateral learning (cf. 5.2)
+        graph, edge_factors = learn_laterals(frcs, bu_msg, perturb_factor=perturb_factor)
+
     return ModelFactors(frcs, edge_factors, graph)
 
 
