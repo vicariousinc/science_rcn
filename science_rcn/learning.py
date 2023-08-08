@@ -14,11 +14,12 @@ LOG = logging.getLogger(__name__)
 ModelFactors = namedtuple("ModelFactors", "frcs edge_factors graph")
 
 
-def train_image(img, perturb_factor=2.0):
+def train_image(img, perturb_factor=2.0, num_iterations=100):
     """Main function for training on one image.
 
     Parameters
     ----------
+    num_iterations
     img : 2D numpy.ndarray
         The training image.
     perturb_factor : float
@@ -43,12 +44,16 @@ def train_image(img, perturb_factor=2.0):
     bu_msg = preproc_layer.fwd_infer(img)
     # Sparsification (cf. Sec 5.1.1)
     frcs = sparsify(bu_msg)
-    # Lateral learning (cf. 5.2)
-    graph, edge_factors = learn_laterals(frcs, bu_msg, perturb_factor=perturb_factor)
+
+    # Training loop for specified number of iterations
+    for iteration in range(num_iterations):
+        # Lateral learning (cf. 5.2)
+        graph, edge_factors = learn_laterals(frcs, bu_msg, perturb_factor=perturb_factor)
+
     return ModelFactors(frcs, edge_factors, graph)
 
 
-def sparsify(bu_msg, suppress_radius=3):
+def sparsify(bu_msg, suppress_radius=3, activation_threshold=0.5):
     """Make a sparse representation of the edges by greedily selecting features from the
     output of preprocessing layer and suppressing overlapping activations.
 
@@ -60,21 +65,24 @@ def sparsify(bu_msg, suppress_radius=3):
     suppress_radius : int
         How many pixels in each direction we assume this filter
         explains when included in the sparsification.
+    activation_threshold : float
+        The minimum activation value a pixel must have to be considered as a feature.
 
     Returns
     -------
-    frcs : see train_image.
+    frcs : numpy.ndarray
+        Selected features along with their locations.
     """
     frcs = []
-    img = bu_msg.max(0) > 0
+    img = bu_msg.max(0) > activation_threshold
     while True:
         r, c = np.unravel_index(img.argmax(), img.shape)
         if not img[r, c]:
             break
         frcs.append((bu_msg[:, r, c].argmax(), r, c))
         img[
-            r - suppress_radius : r + suppress_radius + 1,
-            c - suppress_radius : c + suppress_radius + 1,
+            r - suppress_radius: r + suppress_radius + 1,
+            c - suppress_radius: c + suppress_radius + 1,
         ] = False
     return np.array(frcs)
 
@@ -122,7 +130,7 @@ def make_adjacency_graph(frcs, bu_msg, max_dist=3):
 
 
 def add_underconstraint_edges(
-    frcs, graph, perturb_factor=2.0, max_cxn_length=100, tolerance=4
+        frcs, graph, perturb_factor=2.0, max_cxn_length=100, tolerance=4
 ):
     """Examines all pairs of variables and greedily adds pairwise constraints
     until the pool flexibility matches the desired amount of flexibility specified by
